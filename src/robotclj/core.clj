@@ -6,9 +6,8 @@
 ;executor 
 
 (defn virtual-executor [virtual]
- {
- 	"Will dispatch the given command to the given virtual simulator, which is a reference (agent)"
- 	:travel (fn [distance direction] direction)
+ "Will dispatch the given command to the given virtual simulator, which is a reference (agent)"
+ {:travel (fn [distance direction] direction)
   :drive (fn [direction] direction)
   :rotate (fn [rotation] rotation)
   :turn (fn [angle rotation] rotation)
@@ -20,9 +19,8 @@
 (defn remote-executor [dispatch-fn]
  "Will dipatch the given command to a remote (bluetooth) listener. It will return true when the command has
 	been succesfully executed."
- {
- 	:travel (fn [distance direction] direction)
-  :drive (fn [direction] direction)
+ {:travel (fn [distance direction] direction)
+ 	:drive (fn [direction] direction)
   :rotate (fn [rotation] rotation)
   :turn (fn [angle rotation] rotation)
  	:whiteline (fn [] )
