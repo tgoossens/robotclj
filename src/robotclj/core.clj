@@ -11,7 +11,7 @@
   :drive (fn [direction] direction)
   :rotate (fn [rotation] rotation)
   :turn (fn [angle rotation] rotation)
- 	:whiteline (fn [] )
+  :whiteline (fn [] )
  	:center (fn [])
  	:explore (fn [])
  	:stop (fn [])})
@@ -28,8 +28,6 @@
  	:explore (fn [])
  	:stop (fn [])})
  	
-
-
 
 ;controll a robot
 ;merge executor with pilot
