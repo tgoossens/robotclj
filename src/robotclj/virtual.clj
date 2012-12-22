@@ -81,7 +81,7 @@
 
 ;does this need to be complected with command? How to decomplect this?
 
-(defn drive-command [drive-fn stop-fn rate]
+(defn drive-command [drive-fn stop-fn]
 	"Construct a drive command. 
 	Must provide a drive-fn which accepts a position and angle and returns a position.
 	Must provide a stop-fn which accepts a simulator and returns true or false. Stop-fn has the role of stopcondition
@@ -92,7 +92,7 @@
 	 :stop-fn stop-fn})
 
 
-(defn rotate-command [rotate-fn stop-fn rate]
+(defn rotate-command [rotate-fn stop-fn]
 	"Construct a rotate command. 
 	Must provide a rotate-fn which accepts angle and returns an angle.
 	Must provide a stop-fn which accepts a simulator and returns true or false. 
