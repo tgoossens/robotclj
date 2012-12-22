@@ -85,12 +85,11 @@
 	"Construct a drive command. 
 	Must provide a drive-fn which accepts a position and angle and returns a position.
 	Must provide a stop-fn which accepts a simulator and returns true or false. Stop-fn has the role of stopcondition
-	rate is the amount of executions per second
+
 	"
 	{:type ::drive
 	 :drive-fn drive-fn
-	 :stop-fn stop-fn
-	 :rate rate})
+	 :stop-fn stop-fn})
 
 
 (defn rotate-command [rotate-fn stop-fn rate]
@@ -98,21 +97,17 @@
 	Must provide a rotate-fn which accepts angle and returns an angle.
 	Must provide a stop-fn which accepts a simulator and returns true or false. 
 	Stop-fn has the role of stopcondition
-	rate is the amount of executions per second
 	"
 	{:type ::rotate
 	 :rotate-fn rotate-fn
-	 :stop-fn stop-fn
-	 :rate rate})
+	 :stop-fn stop-fn})
 
 (defn nop-command []
 	"Construct a nop command. This command does literally nothing.
 	Its stop-fn will always return false.
-	rate is the amount of executions per second
 	"
 	{:type ::nop
-	 :stop-fn (fn [simulator] false)}
-	 :rate 1)
+	 :stop-fn (fn [simulator] false)})
 
 (defmulti command-map "Maps command onto a function that accepts a simulator.
 	This function will produce the next value of the simulator." :type)
