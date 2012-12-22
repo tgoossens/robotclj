@@ -1,4 +1,6 @@
-(ns robotclj.virtual)
+(ns robotclj.virtual
+	(:use [overtone.at-at]))
+
 
 
 
@@ -13,6 +15,8 @@
             :rotatespeed rotatespeed
             :position startposition
             :angle startangle
+            :proximity 0
+            :lightintensity 0
             }
    
    :parameters {:move-step 0.01
@@ -56,7 +60,6 @@
  	     angle (:angle robot)
  	     position (:position robot)
  	     move-step (:move-step params)]
-
  (assoc-in simulator [:robot :position]
   ((drive-fn position angle) move-step))))
 
@@ -113,11 +116,15 @@
 
 (defmulti command-map "Maps command onto a function that accepts a simulator.
 	This function will produce the next value of the simulator." :type)
-(defmethod command-map ::nop [command] (fn [simulator] simulator))
+(defmethod command-map ::nop [command] (fn [simulator] simulator))	
 (defmethod command-map ::drive [command] (fn [simulator] (drive-step simulator (:drive-fn command))))
 (defmethod command-map ::rotate [command] (fn [simulator] (rotate-step simulator (:rotate-fn command))))
 (defmethod command-map ::travel [command] (fn [simulator] (drive-step simulator (:drive-fn command))))
 
+
+(def command-map 
+	(dispatch-map :type
+		::nop))
 
 (defn run-command [simulator command rate]
 	"Expects a simulator atom"
