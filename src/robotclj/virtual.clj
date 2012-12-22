@@ -122,16 +122,11 @@
 (defmethod command-map ::travel [command] (fn [simulator] (drive-step simulator (:drive-fn command))))
 
 
-(def command-map 
-	(dispatch-map :type
-		::nop))
-
 (defn run-command [simulator command rate]
 	"Expects a simulator atom"
 	(loop []
 		(when-not ((:stopcondition command) command)
-		  (do 
 		  	(Thread/sleep (/ 1000 rate))
 		  	(swap! simulator (command-map command))
-		    (recur)))))
+		    (recur))))
 
