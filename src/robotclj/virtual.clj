@@ -172,6 +172,7 @@
 		    (recur))))
 
 
+;What a monster
 
 (defn start-simulator [simulator-atom]
 "Expects a simulator atom"
