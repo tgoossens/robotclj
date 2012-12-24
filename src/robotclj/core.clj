@@ -5,10 +5,10 @@
 
 ;executor 
 
-(defn virtual-executor [virtual]
+(defn virtual-executor [simulator]
  "Will dispatch the given command to the given virtual simulator, which is a reference (agent)"
- {:travel (fn [distance direction] direction)
-  :drive (fn [direction] direction)
+ {:travel (fn [distance direction] )
+  :drive (fn [direction] (push-command simulator))
   :rotate (fn [rotation] rotation)
   :turn (fn [angle rotation] rotation)
   :whiteline (fn [] )
@@ -106,11 +106,11 @@
  	:executor executor})
 
 
-(defn virtual-robot []
+(defn virtual-robot [simulator]
  "A virtualrobot made up of virtual components."
- {:lightsensor (virtual-lightsensor 0) 
- 	:proximitysensor (virtual-proximitysensor 0) 
- 	:executor (virtual-executor 0))) 
+ {:lightsensor (virtual-lightsensor simulator) 
+ 	:proximitysensor (virtual-proximitysensor simulator) 
+ 	:executor (virtual-executor simulator))) 
 
 
 ;some notes

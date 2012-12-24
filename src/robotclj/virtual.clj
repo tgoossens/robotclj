@@ -1,17 +1,18 @@
-(ns robotclj.virtual
-	(:use [overtone.at-at]))
+(ns robotclj.virtual)
 
 
 
 
 (defn create-simulator 
   "Create a simulator. Clockrate is set to 1 execution per second"
-  [startposition startangle travelspeed rotatespeed]
+  [startposition startangle drivespeed rotatespeed]
   {
    
    :command {:type :nop}
+    
+   :commandqueue []
 
-   :robot  {:travelspeed travelspeed
+   :robot  {:drivespeed drivespeed
             :rotatespeed rotatespeed
             :position startposition
             :angle startangle
@@ -22,6 +23,7 @@
    :parameters {:move-step 0.01
                 :rotate-step 0.01
                 :clockrate 1 
+                :active false
                }
    }
   )
@@ -81,6 +83,11 @@
 
 ;does this need to be complected with command? How to decomplect this?
 
+
+;RATE defined in a command? Why would you do that? What does this even mean?
+;Should rate return a function that expects a simulator and then returns the rate?
+; (fn [simulator] (/ (-> simulator :robot :drivespeed ) (-> simulator :parameters :move-step))
+
 (defn drive-command [drive-fn stop-fn]
 	"Construct a drive command. 
 	Must provide a drive-fn which accepts a position and angle and returns a position.
@@ -89,7 +96,9 @@
 	"
 	{:type ::drive
 	 :drive-fn drive-fn
-	 :stop-fn stop-fn})
+	 :stop-fn stop-fn
+	 :rate (fn [simulator] 
+	 	      (/ (-> simulator :robot :drivespeed ) (-> simulator :parameters :move-step))) })
 
 
 (defn rotate-command [rotate-fn stop-fn]
@@ -100,14 +109,17 @@
 	"
 	{:type ::rotate
 	 :rotate-fn rotate-fn
-	 :stop-fn stop-fn})
+	 :stop-fn stop-fn
+	 :rate (fn [simulator] 
+	 	      (/ (-> simulator :robot :rotatespeed ) (-> simulator :parameters :rotate-step)))})
 
 (defn nop-command []
 	"Construct a nop command. This command does literally nothing.
 	Its stop-fn will always return false.
 	"
 	{:type ::nop
-	 :stop-fn (fn [simulator] false)})
+	 :stop-fn (fn [simulator] false)
+	 :rate (fn [simulator] 10)})
 
 (defmulti command-map "Maps command onto a function that accepts a simulator.
 	This function will produce the next value of the simulator." :type)
@@ -117,11 +129,74 @@
 (defmethod command-map ::travel [command] (fn [simulator] (drive-step simulator (:drive-fn command))))
 
 
-(defn run-command [simulator command rate]
+; replace by command queue
+
+;use agent to model this: fn swaps the currently running command? 
+
+
+;add commands to queue. which will be executed in order. Unless some of the commands is a stop command.
+;Then the whole queue gets reset and all action stops
+
+
+
+(defn push-command [simulator-atom command]
+	(swap! simulator-atom 
+		(fn [simulator]
+			(let [queue (:commandqueue simulator)]
+				(assoc simulator :commandqueue (conj queue command))))))
+
+
+(defn stop? [command]
+	(= ::stop (:type command)))
+
+(defn ready? [{:keys [enabled]}]
+	(boolean (not enabled)))
+
+(defn stop-task [{:keys [enabled] :as task}]
+	(assoc task :enabled false))
+
+
+;The currently running thread is kept in the recur binding. so that checking can continue.
+;dereferences simulator before every new loop
+
+   
+		
+(defn run-task [simulator command]
 	"Expects a simulator atom"
 	(loop []
-		(when-not ((:stopcondition command) command)
-		  	(Thread/sleep (/ 1000 rate))
-		  	(swap! simulator (command-map command))
+		(when-not (or ((:stop-fn @command) @simulator) 
+			            (not (:enabled @command)))
+		  	(Thread/sleep 1000)
+		  	(swap! simulator (command-map @command))
+		
 		    (recur))))
 
+
+
+(defn start-simulator [simulator-atom]
+"Expects a simulator atom"
+  (swap! simulator-atom assoc-in [:parameters :active] true)
+
+	(loop [running (atom nil) simulator @simulator-atom]
+		(Thread/sleep 1000)
+		(if (empty? (:commandqueue simulator))
+  	 (recur running @simulator-atom)
+     (if-not (some stop? (:commandqueue simulator))
+      (if (ready? @running)
+       (let [command (first (:commandqueue simulator))
+      			 task (atom (assoc command :enabled true))]
+      	 (swap! simulator-atom #(assoc % :commandqueue (rest (:commandqueue %))))
+      	 (println @task)
+      	 (.start (Thread. (fn [] (run-task simulator-atom task))))
+      	 (recur task @simulator-atom))  
+
+      (recur running @simulator-atom))
+     (do 
+      (when-not (nil? @running)
+       (swap! running stop-task))
+       (swap! simulator-atom assoc :commandqueue [])
+      (recur (atom nil) @simulator-atom))))))
+
+
+(defn -main [& args]
+	(start-simulator (atom (create-simulator [0 0] 0  1 1))))
