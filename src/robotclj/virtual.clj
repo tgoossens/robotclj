@@ -34,6 +34,13 @@
 
 
 
+
+(defn norm2-distance  [[x1 y1] [x2 y2]]
+"Euclidean distance between 2 points"
+ (Math/sqrt
+  (+ (Math/pow (- x1 x2) 2)
+  (Math/pow (- y1 y2) 2))))
+
 (defn add-vector [v1 v2]
 	"Add two vectors elements pairwise"
 	(map + v1 v2))
@@ -87,6 +94,18 @@
 ;RATE defined in a command? Why would you do that? What does this even mean?
 ;Should rate return a function that expects a simulator and then returns the rate?
 ; (fn [simulator] (/ (-> simulator :robot :drivespeed ) (-> simulator :parameters :move-step))
+
+;stop-fn
+
+
+;STOP CONDITION SHOULD NOT BE IN THE COMMAND BUT BE DELIVERED WITH THE COMMAND! 
+
+
+(defn travelled? [initrobot distance]
+	(fn [robot] 
+		(>= (norm2-distance (:position initrobot) (:position robot)  distance))))
+
+
 
 (defn drive-command [drive-fn stop-fn]
 	"Construct a drive command. 
@@ -172,6 +191,8 @@
 		    (recur))))
 
 
+(defn next-task [simulator])
+
 ;What a monster
 
 (defn start-simulator [simulator-atom]
@@ -187,7 +208,6 @@
        (let [command (first (:commandqueue simulator))
       			 task (atom (assoc command :enabled true))]
       	 (swap! simulator-atom #(assoc % :commandqueue (rest (:commandqueue %))))
-      	 (println @task)
       	 (.start (Thread. (fn [] (run-task simulator-atom task))))
       	 (recur task @simulator-atom))  
 
@@ -197,6 +217,32 @@
        (swap! running stop-task))
        (swap! simulator-atom assoc :commandqueue [])
       (recur (atom nil) @simulator-atom))))))
+
+;
+
+;(defn start-simulator2 [simulator-atom]
+;"Expects a simulator atom"
+;  (swap! simulator-atom assoc-in [:parameters :active] true);
+
+;	(loop [running (atom nil) simulator @simulator-atom]
+;		(Thread/sleep 1000);
+;
+
+;		(cond 
+;			(not (:active simulator) nil)
+;			(empty? (:commandqueue simulator)) (recur running @simulator-atom)
+;			(some stop? (:commandqueue simulator) (do 
+;			                                       (when-not (nil? @running)
+;                                              (swap! running stop-task))
+;                                              (swap! simulator-atom assoc :commandqueue [])
+;                                              (recur (atom nil) @simulator-atom)));
+
+;      (ready? @running)  (let [command (first (:commandqueue simulator))
+;      			                   task (atom (assoc command :enabled true))]
+;      	                       (swap! simulator-atom #(assoc % :commandqueue (rest (:commandqueue %))))
+;                               (.start (Thread. (fn [] (run-task simulator-atom task))))
+;      	                       (recur task @simulator-atom))
+;      :else (recur running @simulator-atom))))
 
 
 (defn -main [& args]
