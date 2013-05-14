@@ -1,47 +1,47 @@
 (ns robotclj.core
   (:require [robotclj.virtual :as v]))
 
-;abstractions for controlling a robot.
+                                        ;abstractions for controlling a robot.
 
 
 
 
 
 (defn virtual-executor [simulator]
- "Will dispatch the given command to the given virtual simulator, which is a reference (agent)"
- {:travel (fn [distance direction] )
-  :drive (fn [direction] (v/push-command simulator (v/drive-command v/forward (fn [a] false))))
-  :rotate (fn [rotation] rotation)
-  :turn (fn [angle rotation] rotation)
-  :whiteline (fn [] )
-  :center (fn [])
-  :explore (fn [])
-  :stop (fn [])})
+  "Will dispatch the given command to the given virtual simulator, which is a reference (agent)"
+  {:travel (fn [distance direction] )
+   :drive (fn [direction] (swap! ))
+   :rotate (fn [rotation] rotation)
+   :turn (fn [angle rotation] rotation)
+   :whiteline (fn [] )
+   :center (fn [])
+   :explore (fn [])
+   :stop (fn [])})
 
 (defn remote-executor [dispatch-fn]
- "Will dipatch the given command to a remote (bluetooth) listener. It will return true when the command has
+  "Will dipatch the given command to a remote (bluetooth) listener. It will return true when the command has
         been succesfully executed."
- {:travel (fn [distance direction] direction)
-  :drive (fn [direction] direction)
-  :rotate (fn [rotation] rotation)
-  :turn (fn [angle rotation] rotation)
-  :whiteline (fn [] )
-  :center (fn [])
-  :explore (fn [])
-  :stop (fn [])})
+  {:travel (fn [distance direction] direction)
+   :drive (fn [direction] direction)
+   :rotate (fn [rotation] rotation)
+   :turn (fn [angle rotation] rotation)
+   :whiteline (fn [] )
+   :center (fn [])
+   :explore (fn [])
+   :stop (fn [])})
 
 
-;controll a robot
-;merge executor with pilot
-;maybe this can be a request as well. and the receiver gets notified when the action is complete?
+                                        ;controll a robot
+                                        ;merge executor with pilot
+                                        ;maybe this can be a request as well. and the receiver gets notified when the action is complete?
 
 
 (defn execute [robot action]
   (-> robot :executor action))
 
 (defn drive [robot direction]
- "Indefinite driving of robot."
- ((execute robot :drive) direction))
+  "Indefinite driving of robot."
+  ((execute robot :drive) direction))
 
 (defn rotate [robot rotation]
   "Indefinite rotating of robot."
@@ -63,7 +63,7 @@
   "Center the robot the sector. Returns true when finished"
   ((execute robot :center)))
 
-;what about intermediate information? About what nodes have been discovered? How do get this information?
+                                        ;what about intermediate information? About what nodes have been discovered? How do get this information?
 
 (defn explore [robot]
   "Make robot start autonomous maze exploring. Returns true when finished."
@@ -75,13 +75,13 @@
   ((-> robot :lightsensor :read)))
 
 (defn read-proximitysensor [robot]
- "Returns the value of the proximitysensor"
- ((-> robot :proximitysensor :read)))
+  "Returns the value of the proximitysensor"
+  ((-> robot :proximitysensor :read)))
 
 
-;ROBOT
+;;ROBOT
 
-;lightsensor
+                                        ;lightsensor
 
 (defn virtual-lightsensor [virtual]
   "A virtual lightsensor."
@@ -91,7 +91,7 @@
   "A remote lightsensor. Will use dispatch function to send information via bluetooth."
   {:read (dispatch-fn :lightsensor)})
 
-;proximity sensor
+                                        ;proximity sensor
 
 (defn virtual-proximitysensor [virtual]
   {:read (fn [] 255)} )
@@ -102,13 +102,13 @@
 
 
 
-;some notes
-;
-;The robot is made up of components
-;The virtual that is given to each component containts information.
-;The virtual knows the position, orientation, speed (?), ;
-;
-;The virtual can be sent commands.
+                                        ;some notes
+                                        ;
+;;The robot is made up of components
+ ;                                       ;The virtual that is given to each component containts information.
+                                        ;The virtual knows the position, orientation, speed (?), ;
+                                        ;
+                                        ;The virtual can be sent commands.
 
 
 (defn -main [& args]
@@ -118,12 +118,11 @@
                  :executor (virtual-executor simulator)}]
 
     (.start (Thread. (fn [] (v/start-simulator simulator))))
-   (drive virtual :forward)
-   (loop []
-     (Thread/sleep 1000)
-
-    (println @simulator)
-     (recur))))
+    (drive virtual :forward)
+    (loop []
+      (Thread/sleep 1000)
+      (println (read-lightsensor virtual))
+      (recur))))
 
 
 (comment
